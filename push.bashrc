@@ -28,9 +28,9 @@
 #
 #   - p1 to p9 are aliases on "pushd +1" to "pushd +9"
 #
-#   - g/go searches for a pushed directory in the stack that matches the
-#     regex received as parameter. If several directories match, the
-#     list of matching directories is displayed, and the current
+#   - g/go searches for a pushed directory in the stack that matches all
+#     the regexes received as parameters. If several directories match,
+#     the list of matching directories is displayed, and the current
 #     directory is left unchanged.
 # ----------------------------------------------------------------------
 # Other similar aliases can be found over internet, see for instance:
@@ -101,14 +101,30 @@ popd_int() { \popd $* > /dev/null ; d
 alias popd=popd_int
 
 # ----------------------------------------------------------------------
+## grep all: do multiple grep to match all args
+grep_all() {
+    res="grep $1"
+    declare -a args=("$@")
+    for arg in "${args[@]:1}" ; do
+        res="${res} | grep ${arg}"
+    done
+    eval $res
+}
+# ----------------------------------------------------------------------
 ## Go to a directory mathing a given pattern
 # <=> d <pattern> && p +<correct-offset>
 g() {
     if [ $# -eq 0 ] ; then
-	p
-    elif [ $# -eq 1 ] ; then
+	echo "USAGE: g <pattern>"
+	echo "Incorrect number of arguments"
+	echo ""
+	echo "This command searches for a pushed directory having the <pattern>"
+	echo "in its name and goes to it."
+	echo ""
+	echo "See pushd (aliased to p), dirs (aliased to d), and popd"
+    else
 	all_dirs=$(dirs)
-	matching_dirs=$(printf "$all_dirs"| grep "$@")
+	matching_dirs=$(printf "$all_dirs"| grep_all "$@")
 	if [ $? -eq 1 ] ; then
 	    echo "g: there is no pushed directories matching '$@'"
 	    printf "$all_dirs"
@@ -123,14 +139,6 @@ g() {
 		p +$which
 	    fi
 	fi
-    else
-	echo "USAGE: g <pattern>"
-	echo "Incorrect number of arguments"
-	echo ""
-	echo "This command searches for a pushed directory having the <pattern>"
-	echo "in its name and goes to it."
-	echo ""
-	echo "See pushd (aliased to p), dirs (aliased to d), and popd"
     fi
 }
 alias go=g
