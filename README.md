@@ -4,12 +4,12 @@ Bash-scripts
 Miscellaneous scripts to enhance bash (prompt, adding directories to variables, ...)
 
 Table of Contents
-* [Scripts](#Scripts)
+* [Scripts](#scripts)
   * [push.bashrc](#pushbashrc)
   * [ssh.bashrc](#sshbashrc)
   * [munge.bashrc](#mungebashrc)
   * [cyg-wrapper.sh](#cyg-wrappersh)
-* [Installation](#Installation)
+* [Installation](#installation)
 
 ## Scripts
 
@@ -112,7 +112,7 @@ cygwin:
  ### Vim
  ## Little trick for LaTeX-Suite:
  # If one of the parameters is a (La)TeX file, then we declare the
- # servername to be «LATEX».
+ # servername to be ï¿½LATEXï¿½.
  gvim() {
     opt=''
     if [ `expr "$*" : '.*tex\>'` -gt 0 ] ; then
