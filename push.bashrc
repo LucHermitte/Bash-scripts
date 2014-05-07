@@ -16,7 +16,7 @@
 #   <http://www.softpanorama.org/Scripting/Shellorama/pushd_and_popd.shtml>
 #
 #   This script overrides the default presentation of the three
-#   commands, and provides a aliases:
+#   commands, and provides the following aliases:
 #
 #   - d/dirs now displays one pushed directory per line, preceded by the
 #     directory index wihthin the stack. (this is close to \dirs -v)
