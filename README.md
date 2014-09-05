@@ -23,7 +23,7 @@ This script overrides the default presentation of the three commands, and
 provides the following aliases:
 
 * `d`/`dirs` now displays one pushed directory per line, preceded by the
-  directory index wihthin the stack. (this is close to `\dirs -v`).
+  directory index within the stack. (this is close to `\dirs -v`).
   When given an argument, `dirs` will display only the pushed directories that
   match the regex.
 
@@ -40,10 +40,23 @@ provides the following aliases:
 Other similar aliases can be found over internet, see for instance:
  <http://blogs.sun.com/nico/entry/ksh_functions_galore>.
 
+
+Other commands aimed at storing bash configuration (directories pushed and
+environment variables) are also provided:
+
+* `save_conf <conf-id>` saves the current directories pushed and `env` contents
+  in the files `$SHELL_CONF/<conf-id>.dirs` and `$SHELL_CONF/<conf-id>.env`.
+
+* `load_conf <conf-id>` restores the configuration saved with the previous
+  command. Actually the environment is not restored. However, the differences
+  between the current and the saved environment are displayed.
+
+The default value for `$SHELL_CONF` is `$HOME/.config/bash`
+
 ### ssh.bashrc
 
 This script is meant to be sourced from the `~/.bashrc`. It will ask for the
-passphrase, once, and then it will remember it for later.
+pass-phrase, once, and then it will remember it for later.
 
 ### munge.bashrc
 
@@ -105,7 +118,7 @@ Mutt) with any kind of pathnames passed as parameters.
 #####Usage
 To get help on the way to use cyg-wrapper, try `cyg-wrapper.sh --help | less`.
 
-In my `~/.profile`, I usually have the folowing to run native win32 gvim from
+In my `~/.profile`, I usually have the following to run native win32 gvim from
 cygwin:
 
 ```bash
@@ -139,7 +152,7 @@ As a consequence, we can type this.
 ```
 
 #####Requirements
-* *cyg*Utils to run and more precisally `realpath`.
+* *cyg*Utils to run and more precisely `realpath`.
 
 ## Installation
 
