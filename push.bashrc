@@ -1,13 +1,13 @@
-# $Id$ 
-# Author:	Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
-# Purpose:	Aliases for mananing directories stack.
-# Licence:	GPL2
-# Version:	1.1
+# $Id$
+# Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
+# Purpose:      Aliases for mananing directories stack.
+# Licence:      GPL2
+# Version:      1.2
 #
 # Installation:
-# 	Source this file from your .bahrc/.profile
-# 	Requires a shell that implements directories stack like bash, 
-# 	and the following programs: perl, cut, grep, and cat.
+#       Source this file from your .bahrc/.profile
+#       Requires a shell that implements directories stack like bash,
+#       and the following programs: perl, cut, grep, and cat.
 # ----------------------------------------------------------------------
 # Usage:
 #   This script provides a few helpers on top of pushd/popd/dirs
@@ -35,11 +35,11 @@
 #
 #   - `save_conf <conf-id>` saves the current directories pushed and `env` contents
 #     in the files `$SHELL_CONF/<conf-id>.dirs` and `$SHELL_CONF/<conf-id>.env`.
-#    
+#
 #   - `load_conf <conf-id>` restores the configuration saved with the previous
 #     command. Actually the environment is not restored. However, the differences
 #     between the current and the saved environment are displayed.
-#    
+#
 #  The default value for `$SHELL_CONF` is `$HOME/.config/bash`
 #
 # ----------------------------------------------------------------------
@@ -57,11 +57,11 @@ if [ 0 == 1 ] ; then
     }
 else
     maybegrep() {
-	if [ $# -gt 0 ] ; then
-	    grep $1
-	else
-	    cat
-	fi
+        if [ $# -gt 0 ] ; then
+            grep $1
+        else
+            cat
+        fi
 }
     # Si pas gawk
     # d() { \dirs | sed 's# \([/.~]\)#\1#g' |grep -n . | sed 's#:#-> #'
@@ -79,13 +79,13 @@ alias dirs=d
 
 # ----------------------------------------------------------------------
 ## Push a directory {{{2
-p() { 
-    if [ -z "$*" ] ; then 
-	# If no parameter, we do not want to push the current directory
-	\pushd > /dev/null
+p() {
+    if [ -z "$*" ] ; then
+        # If no parameter, we do not want to push the current directory
+        \pushd > /dev/null
     else
-	# The quotes in «"$*» permit to write «p $vim»
-	\pushd "$*" > /dev/null
+        # The quotes in «"$*» permit to write «p $vim»
+        \pushd "$*" > /dev/null
     fi
     # List the directories pushed
     d
@@ -93,15 +93,15 @@ p() {
 
 # ----------------------------------------------------------------------
 ## Move to a pushed directory {{{2
-alias	p1="p +1"
-alias	p2="p +2"
-alias	p3="p +3"
-alias	p4="p +4"
-alias	p5="p +5"
-alias	p6="p +6"
-alias	p7="p +7"
-alias	p8="p +8"
-alias	p9="p +9"
+alias   p1="p +1"
+alias   p2="p +2"
+alias   p3="p +3"
+alias   p4="p +4"
+alias   p5="p +5"
+alias   p6="p +6"
+alias   p7="p +7"
+alias   p8="p +8"
+alias   p9="p +9"
 
 # ----------------------------------------------------------------------
 ## Pop a directory {{{2
@@ -125,30 +125,30 @@ grep_all() {
 # <=> d <pattern> && p +<correct-offset>
 g() {
     if [ $# -eq 0 ] ; then
-	echo "USAGE: g <pattern>"
-	echo "Incorrect number of arguments"
-	echo ""
-	echo "This command searches for a pushed directory having the <pattern>"
-	echo "in its name and goes to it."
-	echo ""
-	echo "See pushd (aliased to p), dirs (aliased to d), and popd"
+        echo "USAGE: g <pattern>"
+        echo "Incorrect number of arguments"
+        echo ""
+        echo "This command searches for a pushed directory having the <pattern>"
+        echo "in its name and goes to it."
+        echo ""
+        echo "See pushd (aliased to p), dirs (aliased to d), and popd"
     else
-	local all_dirs=$(dirs)
-	local matching_dirs=$(printf "$all_dirs"| grep_all "$@")
-	if [ $? -eq 1 ] ; then
-	    echo "g: there is no pushed directories matching '$@'"
-	    printf "$all_dirs"
-	else
-	    local nb=$(echo "$matching_dirs" | wc -l)
-	    #echo $(echo "$matching_dirs" | wc )
-	    if [ $nb -gt 1 ] ; then
-		echo "g: there are too many pushed directories matching '$@'"
-		printf "$matching_dirs"
-	    else
-		local which=$(echo $matching_dirs |cut -f 1 -d " ")
-		p +$which
-	    fi
-	fi
+        local all_dirs=$(dirs)
+        local matching_dirs=$(printf "$all_dirs"| grep_all "$@")
+        if [ $? -eq 1 ] ; then
+            echo "g: there is no pushed directories matching '$@'"
+            printf "$all_dirs"
+        else
+            local nb=$(echo "$matching_dirs" | wc -l)
+            #echo $(echo "$matching_dirs" | wc )
+            if [ $nb -gt 1 ] ; then
+                echo "g: there are too many pushed directories matching '$@'"
+                printf "$matching_dirs"
+            else
+                local which=$(echo $matching_dirs |cut -f 1 -d " ")
+                p +$which
+            fi
+        fi
     fi
 }
 alias go=g
@@ -197,11 +197,16 @@ load_conf() {
         echo "There no conf ${bash_conf} in ${shell_conf_files}. Aborting."
         return 2
     fi
-    # TODO: last directory shal be used for cd
     # TODO: test with directories with spaces
     \dirs -c
+    local n=0
     for i in $(cat "${conf_file}.dirs") ; do
-        \pushd "${i/\~/$HOME}" > /dev/null
+        if [ $n -eq 0 ] ; then
+            \cd "${i/\~/$HOME}" > /dev/null
+            ((n++))
+        else
+            \pushd "${i/\~/$HOME}" > /dev/null
+        fi
     done
     dirs
 
