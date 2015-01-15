@@ -11,6 +11,8 @@
 munge() {
     if [ $# -lt 2 ] ; then
 	echo "munge <env-variable> <new-path> [after]"
+        echo ""
+        echo "See also: change_or_munge, and remove_path"
 	return 1
     fi
     local var=$1
@@ -48,6 +50,8 @@ munge() {
 change_or_munge() {
     if [ $# -lt 2 ] ; then
 	echo "change_or_munge <env-variable> <old-path> <new-path>"
+        echo ""
+        echo "See also: munge, and remove_path"
 	return 1
     fi
     local val=$(eval echo \$$1)
@@ -75,6 +79,8 @@ change_or_munge() {
 remove_path() {
     if [ ! $# -eq 2 ] ; then
 	echo "remove_path <env-variable> <path-to-remove>"
+        echo ""
+        echo "See also: munge, and change_or_munge"
 	return 1
     fi
     local val=$(eval echo \$$1)
