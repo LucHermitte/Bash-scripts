@@ -26,7 +26,26 @@ function test_identities {
     fi
 }
 
+function _ssh_test_agent {
+    ps -ef | grep $SSH_AGENT_PID | grep ssh-agent > /dev/null
+}
+
+function _ssh_run_env {
+    # if $SSH_AGENT_PID is not properly set, we might be able to load one from
+    # $SSH_ENV
+    . "$SSH_ENV" > /dev/null
+    _ssh_test_agent && test_identities || start_agent
+}
+
 # check for running ssh-agent with proper $SSH_AGENT_PID
+[ -n "$SSH_AGENT_PID" ] && _ssh_test_agent \
+&& test_identities \
+|| _ssh_run_env
+
+return
+
+# This (old) version generates the following error message:
+#  Usage : grep [OPTION]... PATTERN [FILE]...
 ps -ef | grep $SSH_AGENT_PID | grep ssh-agent > /dev/null
 if [ $? -eq 0 ]; then
     test_identities
@@ -41,6 +60,3 @@ else
         start_agent
     fi
 fi
-
-
-
