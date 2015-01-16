@@ -85,6 +85,7 @@ for f in $files ; do
     if [ $verbose -gt 0 ] ; then
         echo ln "$ORIG/$f"
     fi
+    rm "$f"
     ln "$ORIG/$f"
 done
 
