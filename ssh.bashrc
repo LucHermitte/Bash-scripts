@@ -1,6 +1,25 @@
 ## SSH
 SSH_ENV="$HOME/.ssh/environment"
 
+## Stop on logout
+# See http://jowisoftware.de/wp/2012/04/managing-ssh-agent-automatically-with-cygwinputty-support/
+if [[ "$OSTYPE" = cygwin ]] ; then
+_count_instances () {
+    ps | grep -c [m]intty
+}
+
+_on_exit_stop_agent() {
+    local nb_instances=$(_count_instances)
+    if [ ${nb_instances} -eq 1 ] ; then
+        echo "Terminating ssh-agent"
+        ssh-agent -k >/dev/null 2>&1
+    else
+        echo "$((${nb_instances}-1)) instances of Cygwin still running. ssh-agent is kept."
+    fi
+}
+fi
+trap '_on_exit_stop_agent' EXIT
+
 # start the ssh-agent
 function start_agent {
     echo "Initializing new SSH agent..."
