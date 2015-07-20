@@ -17,8 +17,8 @@ _on_exit_stop_agent() {
         echo "$((${nb_instances}-1)) instances of Cygwin still running. ssh-agent is kept."
     fi
 }
-fi
 trap '_on_exit_stop_agent' EXIT
+fi
 
 # start the ssh-agent
 function start_agent {
