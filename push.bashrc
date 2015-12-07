@@ -1,8 +1,7 @@
-# $Id$
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 # Purpose:      Aliases for mananing directories stack.
 # Licence:      GPL2
-# Version:      1.2
+# Version:      1.3
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
@@ -184,6 +183,23 @@ save_conf() {
     echo "Bash configuration ${bash_conf} saved (in ${shell_conf_files})."
 }
 
+## Which terminal emulator {{{2
+# http://unix.stackexchange.com/questions/170428/identify-whether-terminal-is-open-in-guake
+which_terminal_emulator() {
+    set -f
+    pid=$PPID
+    my_tty=$(ps -p $$ -o tty=)
+    while
+        [ "$pid" -ne 1 ] &&
+            set -- $(ps -p "$pid" -o ppid= -o tty= -o args=) &&
+            [ "$2" = "$my_tty" ]
+    do
+        pid=$1
+    done
+    shift; shift
+    printf '%s\n' "$*"e
+}
+
 ## Restore configuration {{{2
 load_conf() {
     if [ $# -lt 1 ] ; then
@@ -218,6 +234,8 @@ load_conf() {
         rm "${tmpfile}"
     fi
 
+    local term=$(which_terminal_emulator)
+    [ "${term/guake/}" != "$term" ] && guake -r ${bash_conf}
     echo "..."
     echo "Bash configuration ${bash_conf} loaded (from ${shell_conf_files})."
 }
