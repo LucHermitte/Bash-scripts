@@ -1,14 +1,43 @@
 # ===========================================================================
 ## Paths list concatenations that avoid duplicates
-# example:
 # Script initially found in the /etc of a linux distribution, then
 # patched by Luc Hermitte.
-# Licence, likelly GPL v2. To be confirmed.
+# Licence, likely GPL v2. To be confirmed.
 #
+# Examples:
 # $ munge PATH "$HOME/bin"
 # $ munge MANPATH "$HOME/man"
+unset verbose_munge
 # verbose_munge=1
-munge() {
+
+## Helper functions {{{1
+# _is_unset {{{2
+function _is_unset()
+{
+    [[ -z ${!1+x} ]]
+}
+
+# _is_set {{{2
+function _is_set()
+{
+    # [[ -v $1 ]] with bash 4.2+
+    [[ -n ${!1+x} ]]
+}
+
+# _die {{{2
+function _die()
+{
+   local msg=$1
+   [ -z "${msg}" ] && msg="Died"
+   # printf "${BASH_SOURCE[1]}:${BASH_LINENO[0]}: ${FUNCNAME[1]}: ${msg}" >&2
+   printf "${msg}" >&2
+   return 0
+}
+
+## Path list manipulation functions {{{1
+# munge {{{2
+function munge()
+{
     if [ $# -lt 2 ] ; then
         echo "munge <env-variable> <new-path> [after]"
         echo ""
@@ -16,12 +45,11 @@ munge() {
         return 1
     fi
     local var=$1
-    local val=$(eval echo \$$1)
-    if [[ "${val=set}" = "unset" && "${verbose_munge+set}" = "set" ]] ; then
-        echo "munge <env-variable> <new-path> [after]"
-        echo "$1 does not exist"
-        return 1
-    fi
+    # local val=$(eval echo \$$1)
+    local val=${!1}
+
+    _is_unset "${var}" && [[ "${verbose_munge}" = "1" ]] && _die "munge <env-variable> <new-path> [after]\n<env-variable> \$$1 does not exist." && return 1
+
     # linux -> egrep -q,
     # solaris -> egrep
     if [ -d "$2" ] ; then
@@ -46,22 +74,21 @@ munge() {
     return 0
 }
 
+# change_or_munge {{{2
 # replaces $2 by $3 in $1 unless it is not present. In that case, $3 is
 # munged into $1
-change_or_munge() {
+function change_or_munge()
+{
     if [ $# -lt 2 ] ; then
         echo "change_or_munge <env-variable> <old-path> <new-path>"
         echo ""
         echo "See also: munge, and remove_path"
         return 1
     fi
-    local val=$(eval echo \$$1)
-    if [ -z $val ] ; then
-        echo "change_or_munge <env-variable> <old-path> <new-path>"
-        echo "<env-variable> does not exist"
-        return 1
-    fi
     local var=$1
+    # local val=$(eval echo \$$1)
+    local val=${!1}
+    _is_unset "${var}" && _die "change_or_munge <env-variable> <old-path> <new-path>\n<env-variable> \$$1 does not exist." && return 1
     local old=$2
     local new=$3
     # linux -> egrep -q,
@@ -77,21 +104,19 @@ change_or_munge() {
     return 0
 }
 
-# remove path
-remove_path() {
+# remove path {{{2
+function remove_path()
+{
     if [ ! $# -eq 2 ] ; then
         echo "remove_path <env-variable> <path-to-remove>"
         echo ""
         echo "See also: munge, and change_or_munge"
         return 1
     fi
-    local val=$(eval echo \$$1)
-    if [ -z $val ] ; then
-        echo "remove_path <env-variable> <path-to-remove>"
-        echo "<env-variable> does not exist"
-        return 1
-    fi
     local var=$1
+    # local val=$(eval echo \$$1)
+    local val=${!1}
+    _is_unset "${var}" && _die "remove_path <env-variable> <path-to-remove>\n<env-variable> \$$1 does not exist." && return 1
     local old=$2
     val=$(echo $val | perl -pe "s#(^|:)$old(\$|:)#\\1#;s#::#:#;s#^:|:\$##")
     eval $var=$(echo -ne \""$val"\")
@@ -105,9 +130,10 @@ remove_path() {
 # }
 
 # ===========================================================================
-## Paths cleaning
+# Paths cleaning {{{2
 # apply a kind a O(n^2) uniq that clean duplicates
-clean_path() {
+function clean_path()
+{
     var=$1
     val=$(eval printf \$$1)
     declare -a dirs
@@ -149,4 +175,4 @@ clean_path() {
     return 0
 }
 
-# vim:ft=sh:
+# vim:ft=sh:fdm=manual:
