@@ -230,7 +230,7 @@ load_conf() {
         local tmpfile=$(mktemp)
         env | egrep -v "proxy" >> "${tmpfile}"
         echo "Here follows environment differences between loaded configuration (+) and current configuration (-)"
-        diff -U 0 "${tmpfile}" "${conf_file}.env" | egrep -v "@@|^---|^\+\+\+"
+        diff -U 0 "${tmpfile}" "${conf_file}.env" | egrep -v "@@|^---|^\+\+\+|PID|SESSION|SSH|AUTH|DISPLAY|PWD"
         rm "${tmpfile}"
     fi
 
