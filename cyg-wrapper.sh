@@ -2,6 +2,7 @@
 # Note: for bash only!
 # ======================================================================
 # AUTHOR:	Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
+# 		<URL:http://github.com/LucHermitte/Bash-scripts/>
 # 		<URL:http://hermitte.free.fr/cygwin/cyg-wrapper.sh>
 # 		<URL:http://www.vim.org/tips/tip.php?tip_id=381>
 # CREDITS:	Jonathon M. Merz -> --fork option
@@ -13,8 +14,8 @@
 #		                    for new behaviour of realpath
 #		James Kanze      -> Patch for --fork=2
 # 
-# LAST UPDATE:	28th Apr 2010
-version="2.19"
+# LAST UPDATE:	01st Mar 2016
+version="2.20"
 #
 # NOTES:   {{{1
 #   IMPORTANT: this shell script is for cygwin *ONLY*!
@@ -51,7 +52,7 @@ usageversion() {
     else
 	cat <<END
 # $prog $version
-Copyright (c) 2001-2014 Luc Hermitte
+Copyright (c) 2001-2016 Luc Hermitte
   This is free software; see the GNU General Public Licence version 2 or later
   for copying conditions.  There is NO warranty.
 
@@ -189,6 +190,9 @@ fi
 # (*) The behaviour of realpath has changed. The script has been updated in
 #     consequence.
 #
+# v.2.20
+# (*) Convert PROGRAM into Windows form
+#
 # }}}1
 # TODO:    {{{1
 # (*) Convert parameters like: 'X{path}'
@@ -198,7 +202,6 @@ fi
 #     useful ?)
 # (*) Accept non DOS (short) form for PROGRAM
 # (*) $COMSPEC /c start gvim is not working anymore
-# (*) Test under w9x
 # (*) Enhance --keywords to support:
 #     - the exact syntax of the program; e.g. the second «cvf» in «tar cvf cvf»
 #       is a file, but not the first
@@ -213,8 +216,7 @@ fi
 # I.a- Default value for the various options {{{2
 #
 # Store the program name.
-# WAS (2.13): param="$1 "
-declare -a param=("$1")
+declare -a param=($(cygpath -ms "$1"))
 shift;
 
 # Special arguments:
@@ -405,60 +407,6 @@ while [ $# -gt 0 ] ; do
     shift
 done
 
-# old code {{{2
-oldFN() {
-    while [ $# -gt 0 ] ; do
-	# echo "opt2= $1"
-	if [ `expr ",$binary_args," : ".*,$1,"` -gt 0 ] ; then
-	    # USED to be: ptransl="$1 '$2'"
-	    # THEN: ptransl="$1 $2"
-	    # and NOW: to support «--cmd "echo 'foo'"»
-	    # WAS (2.13): ptransl="$1 \"$2\""
-	    ptransl=("$1" "$2")
-	    # param[${#param[*]}]="$1"
-	    # ptransl="$2"
-	    shift;
-	elif [ `expr ",$path_options=[^,]*," : ".*,$1,"` -gt 0 ] ; then
-	    opt=`expr $1 : '--[^=]*=\(.*\)'`
-	    echo "path-opt= $opt"
-	    ptransl=("$opt")
-	elif [ `expr ",$keywords," : ".*,$1,"` -gt 0 ] ; then
-	    # Actions : the argument is to be ignored (not a file).
-	    ptransl=("$1")
-	elif [ `expr "$1" : "[+-].*"` -gt 0 ] ; then
-	    # Program arguments : must be ignored (not passed to cygpath)
-	    if [ $slashed_opt = 1 ] ; then
-		ptransl=(${1/-//})
-	    else
-		ptransl=("$1")
-	    fi
-	elif [ `expr "$1" : "[a-z]*://.*"` -gt 0 ] ; then 
-	    # some netrw protocol like <http://host> or <ftp://host> : leave as is 
-	    ptransl=("$1")
-	else
-	    # Convert pathname "$1" to absolute path (*nix form) and resolve
-	    # all the symbolic links
-	    ptransl=`grealpath "$1"`
-	    ptransl=`cygpath -wl "$ptransl"`
-	    # nasty workaround to support simple quotes in filenames
-	    # WAS (2.13): ptransl=${ptransl//\'/\'\"\'\"\'}
-	    # WAS (2.13): param="$param '$ptransl'"
-	    param[${#param[*]}]="$ptransl"
-	    ## used to be:
-	    ## ->   param="$param \"$ptransl\"" 
-	    ## which does not support Windows' UNC pathes
-	    ## Unless we use as well
-	    ## ->   ptransl=${ptransl//\\\\\\\\/\\\\\\}
-	    shift
-	    continue
-	fi
-	# Build the parameters-string
-	# WAS (2.13): param="$param $ptransl"
-	# param[${#param[*]}]="$ptransl"
-	param=( "${param[@]}" "${ptransl[@]}" )
-	shift;
-    done
-}
 # }}}1
 # ======================================================================
 # III- Execute the proper tool with the proper arguments. {{{1
@@ -466,7 +414,6 @@ oldFN() {
 if [ $cyg_verb -gt 0 ] ; then
     # echo "$param"  | sed s'#\\\\#\\#g'
     # echo ${param//\\\\\\\\/\\}
-    # WAS (2.13): echo ${param}
     echo "${param[@]}"
 fi
 # call PROGRAM
@@ -483,7 +430,7 @@ elif [ $fork_option = 2 ] ; then
     # WAS (2.13): eval $comspec /c start $param
     # eval $comspec /c start "${param[@]}"
 
-    # WAS (2.18)
+    # (2.18)
     $comspec /c start "${param[@]}"
 
     # this seems to work, at least in my configuration (JAK, 28/4/2010)
