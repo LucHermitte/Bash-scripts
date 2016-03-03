@@ -175,4 +175,17 @@ function clean_path()
     return 0
 }
 
+## Completion {{{1
+function _munge()
+{
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    case $COMP_CWORD in
+        1) COMPREPLY=( $(compgen -v ${cur}) ) ;;
+        *) COMPREPLY=( $(compgen -d ${cur}) ) ;;
+    esac
+}
+complete -F _munge munge
+complete -F _munge remove_path
+complete -F _munge change_or_munge
+
 # vim:ft=sh:fdm=manual:

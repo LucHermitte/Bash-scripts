@@ -1,7 +1,7 @@
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 # Purpose:      Aliases for mananing directories stack.
 # Licence:      GPL2
-# Version:      1.3
+# Version:      1.4
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
@@ -239,6 +239,18 @@ load_conf() {
     echo "..."
     echo "Bash configuration ${bash_conf} loaded (from ${shell_conf_files})."
 }
+
+## Completion {{{2
+# load_conf {{{1
+function _load_conf()
+{
+    local shell_conf_files=${SHELL_CONF:-${HOME}/.config/bash}
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    COMPREPLY=($(\ls ${shell_conf_files}/*.dirs | sed "s#\.dirs##g" | xargs -L1 basename | grep "^${cur}.*"))
+
+    return 0
+}
+
 
 # ----------------------------------------------------------------------
 # vim:ft=sh:fdm=marker
