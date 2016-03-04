@@ -46,6 +46,30 @@
 # <http://blogs.sun.com/nico/entry/ksh_functions_galore>.
 #
 # ----------------------------------------------------------------------
+## Helper functions {{{1
+# _is_unset {{{2
+function _is_unset()
+{
+    [[ -z ${!1+x} ]]
+}
+
+# _is_set {{{2
+function _is_set()
+{
+    # [[ -v $1 ]] with bash 4.2+
+    [[ -n ${!1+x} ]]
+}
+
+# _die {{{2
+function _die()
+{
+   local msg=$1
+   [ -z "${msg}" ] && msg="Died"
+   # printf "${BASH_SOURCE[1]}:${BASH_LINENO[0]}: ${FUNCNAME[1]}: ${msg}" >&2
+   printf "${msg}" >&2
+   return 0
+}
+
 # ----------------------------------------------------------------------
 ### Directory pushing {{{1
 ## Display the directories pushed {{{2
@@ -157,11 +181,8 @@ alias go=g
 
 ## Save configuration {{{2
 save_conf() {
-    bash_conf=${bash_conf:-$1}
-    if [ "${bash_conf}" = "" ] ; then
-        echo "save_conf <id-conf>"
-        return 1
-    fi
+    [[ $# -ge 1 ]] && bash_conf=$1
+    [[ -z ${bash_conf} ]] && _die "save_conf <id-conf>" && return 1
     local shell_conf_files="${SHELL_CONF:-${HOME}/.config/bash}"
     if [ ! -d "${shell_conf_files}" ] ; then
         mkdir "${shell_conf_files}" || (echo "Cannot create configuration directory" && return 2)
@@ -250,6 +271,7 @@ function _load_conf()
 
     return 0
 }
+complete -F _load_conf load_conf
 
 
 # ----------------------------------------------------------------------
