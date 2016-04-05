@@ -79,7 +79,7 @@ you won't end up with `$HOME/bin` twice, or more, into your `$PATH`.
 
 The script also defines
 * `change_or_munge VARIABLE old-path new-path`  to replace a path
-* `remove_path VARIABLE path-to-remove`  to remove a path
+* `remove_path VARIABLE paths-to-remove...`  to remove a list of paths
 * `clean_path VARIABLE` to remove duplicates
 
 

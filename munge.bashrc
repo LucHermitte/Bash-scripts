@@ -107,8 +107,8 @@ function change_or_munge()
 # remove path {{{2
 function remove_path()
 {
-    if [ ! $# -eq 2 ] ; then
-        echo "remove_path <env-variable> <path-to-remove>"
+    if [ $# -lt 2 ] ; then
+        echo "remove_path <env-variable> <paths-to-remove>..."
         echo ""
         echo "See also: munge, and change_or_munge"
         return 1
@@ -116,11 +116,15 @@ function remove_path()
     local var=$1
     # local val=$(eval echo \$$1)
     local val=${!1}
-    _is_unset "${var}" && _die "remove_path <env-variable> <path-to-remove>\n<env-variable> \$$1 does not exist." && return 1
-    local old=$2
-    val=$(echo $val | perl -pe "s#(^|:)$old(\$|:)#\\1#;s#::#:#;s#^:|:\$##")
-    eval $var=$(echo -ne \""$val"\")
-    val=$(eval echo \$$var)
+    _is_unset "${var}" && _die "remove_path <env-variable> <paths-to-remove>...\n<env-variable> \$$1 does not exist." && return 1
+    shift
+    while [ $# -ge 1 ] ; do
+        local old=$1
+        val=$(echo $val | perl -pe "s#(^|:)$old(\$|:)#\\1#;s#::#:#;s#^:|:\$##")
+        eval $var=$(echo -ne \""$val"\")
+        val=$(eval echo \$$var)
+        shift
+    done
     echo $val | tr ':' '\n'
     return 0
 }
@@ -188,4 +192,5 @@ complete -F _munge munge
 complete -F _munge remove_path
 complete -F _munge change_or_munge
 
-# vim:ft=sh:fdm=manual:
+# }}}1
+# vim:ft=sh:fdm=marker
