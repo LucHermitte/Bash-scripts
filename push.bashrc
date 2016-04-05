@@ -1,7 +1,7 @@
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 # Purpose:      Aliases for mananing directories stack.
 # Licence:      GPL2
-# Version:      1.4
+# Version:      1.5
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
@@ -32,12 +32,15 @@
 #     the list of matching directories is displayed, and the current
 #     directory is left unchanged.
 #
-#   - `save_conf <conf-id>` saves the current directories pushed and `env` contents
-#     in the files `$SHELL_CONF/<conf-id>.dirs` and `$SHELL_CONF/<conf-id>.env`.
+#   - `save_conf <conf-id>` saves the current directories pushed, `env`
+#     contents and history in the files `$SHELL_CONF/<conf-id>.dirs`,
+#     `$SHELL_CONF/<conf-id>.env`, and `$SHELL_CONF/<conf-id>.hist`.
 #
-#   - `load_conf <conf-id>` restores the configuration saved with the previous
-#     command. Actually the environment is not restored. However, the differences
-#     between the current and the saved environment are displayed.
+#   - `load_conf <conf-id>` restores the configuration saved with the
+#     previous command. Actually the environment is not restored.
+#     However, the differences between the current and the saved
+#     environment are displayed.
+#     Bash autocompletion is defined for `load_conf`.
 #
 #  The default value for `$SHELL_CONF` is `$HOME/.config/bash`
 #
@@ -46,7 +49,7 @@
 # <http://blogs.sun.com/nico/entry/ksh_functions_galore>.
 #
 # ----------------------------------------------------------------------
-## Helper functions {{{1
+### Helper functions {{{1
 # _is_unset {{{2
 function _is_unset()
 {
@@ -68,6 +71,16 @@ function _die()
    # printf "${BASH_SOURCE[1]}:${BASH_LINENO[0]}: ${FUNCNAME[1]}: ${msg}" >&2
    printf "${msg}" >&2
    return 0
+}
+
+# _save_file {{{2
+function _save_file()
+{
+    local file=$1
+    if [ -f "${file}" ] ; then
+        mv "${file}" "${file}.old"
+        echo "Previous bash configuration ${file}.env moved to ${file}.old."
+    fi
 }
 
 # ----------------------------------------------------------------------
@@ -189,18 +202,15 @@ save_conf() {
     fi
     local conf_file=${shell_conf_files}/${bash_conf}
 
-    if [ -f  "${conf_file}.env" ] ; then
-        mv "${conf_file}.env" "${conf_file}.env.old"
-        echo "Previous bash configuration ${bash_conf}.env moved to ${conf_file}.env.old."
-    fi
-    if [ -f  "${conf_file}.dirs" ] ; then
-        mv "${conf_file}.dirs" "${conf_file}.dirs.old"
-        echo "Previous bash configuration ${bash_conf}.dirs moved to ${conf_file}.dirs.old."
-    fi
+    _save_file "${conf_file}.env"
+    _save_file "${conf_file}.dirs"
+    _save_file "${conf_file}.hist"
 
+    export HISTFILE="${conf_file}.hist"
     echo "$(\dirs -p)" > "${conf_file}.dirs"
     echo "${bash_conf}" > "${conf_file}.env"
     env | egrep -v "proxy" >> "${conf_file}.env"
+    history -w
     echo "Bash configuration ${bash_conf} saved (in ${shell_conf_files})."
 }
 
@@ -247,6 +257,7 @@ load_conf() {
     done
     dirs
 
+    export HISTFILE="${conf_file}.hist"
     if [ -f "${conf_file}.env" ] ; then
         local tmpfile=$(mktemp)
         env | egrep -v "proxy" >> "${tmpfile}"
@@ -257,12 +268,13 @@ load_conf() {
 
     local term=$(which_terminal_emulator)
     [ "${term/guake/}" != "$term" ] && guake -r ${bash_conf}
+    [ -f "${HISTFILE}" ] && history -r
     echo "..."
     echo "Bash configuration ${bash_conf} loaded (from ${shell_conf_files})."
 }
 
 ## Completion {{{2
-# load_conf {{{1
+# _load_conf {{{3
 function _load_conf()
 {
     local shell_conf_files=${SHELL_CONF:-${HOME}/.config/bash}
@@ -273,6 +285,6 @@ function _load_conf()
 }
 complete -F _load_conf load_conf
 
-
+# }}}1
 # ----------------------------------------------------------------------
 # vim:ft=sh:fdm=marker

@@ -44,12 +44,14 @@ Other similar aliases can be found over internet, see for instance:
 Other commands aimed at storing bash configuration (directories pushed and
 environment variables) are also provided:
 
-* `save_conf <conf-id>` saves the current directories pushed and `env` contents
-  in the files `$SHELL_CONF/<conf-id>.dirs` and `$SHELL_CONF/<conf-id>.env`.
+* `save_conf <conf-id>` saves the current directories pushed, `env` contents
+  and history in the files `$SHELL_CONF/<conf-id>.dirs`,
+  `$SHELL_CONF/<conf-id>.env`, and `$SHELL_CONF/<conf-id>.hist`.
 
 * `load_conf <conf-id>` restores the configuration saved with the previous
   command. Actually the environment is not restored. However, the differences
-  between the current and the saved environment are displayed.
+  between the current and the saved environment are displayed.  
+  Bash autocompletion is defined for `load_conf`.
 
 The default value for `$SHELL_CONF` is `$HOME/.config/bash`
 
@@ -64,16 +66,16 @@ This script is meant to be sourced from the `~/.bashrc` to help help filling
 paths into variables like `$PATH`. The main objective is to avoid duplicates in
 the end variables.
 
-For instance, with 
+For instance, with
 ```bash
 munge PATH "$HOME/bin"
 munge MANPATH "$HOME/man"
 ```
 you won't end up with `$HOME/bin` twice, or more, into your `$PATH`.
 
-`munge VARIABLE new-path` will add the new path **before** the other ones. 
+`munge VARIABLE new-path` will add the new path **before** the other ones.
 
-`munge VARIABLE new-path after` will add the new path **after** the other ones. 
+`munge VARIABLE new-path after` will add the new path **after** the other ones.
 
 The script also defines
 * `change_or_munge VARIABLE old-path new-path`  to replace a path
@@ -129,7 +131,7 @@ cygwin:
  gvim() {
     opt=''
     if [ `expr "$*" : '.*tex\>'` -gt 0 ] ; then
-	opt='--servername LATEX '
+        opt='--servername LATEX '
     fi
     cyg-wrapper.sh "C:/Progra~1/Edition/vim/vim74/gvim.exe" --binary-opt=-c,--cmd,-T,-t,--servername,--remote-send,--remote-expr --cyg-verbose --fork=2 $opt "$@"
  }
@@ -143,7 +145,7 @@ As a consequence, we can type this.
 ```bash
     gvim /etc/profile -c /PS1 -c "echo 'correctly opened'"
  # or even:
-    cd ~/tmp ; ln -s ~/bin/cyg-wrapper.sh 
+    cd ~/tmp ; ln -s ~/bin/cyg-wrapper.sh
     gvim -d http://hermitte.free.fr/cygwin/cyg-wrapper.sh cyg-wrapper.sh
 
     explorer -e
@@ -161,7 +163,7 @@ In order to install all these scripts into `$HOME/bin`, just run
 ./install.sh
 ```
 
-Or, if you'd rather install them elsewhere like `/share/stuff/bin`, type 
+Or, if you'd rather install them elsewhere like `/share/stuff/bin`, type
 ```bash
 ./install.sh /share/stuff
 ```
