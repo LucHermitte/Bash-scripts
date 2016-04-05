@@ -34,6 +34,29 @@ function _die()
    return 0
 }
 
+# _split_path {{{2
+function _split_path()
+{
+    local IFS=:
+    local res=( $1 )
+    echo "${res[@]}"
+}
+
+# _filter_array {{{2
+# remove all occurrences of pattern from array elements
+# $1:  pattern
+# $2+: array to filter
+function _filter_array()
+{
+    declare -a res
+    local pat=$1
+    shift
+    for e in "$@"; do
+        [[ "${e}" != "${pat}" ]] && res+=("$e")
+    done
+    echo "${res[@]}"
+}
+
 ## Path list manipulation functions {{{1
 # munge {{{2
 function munge()
@@ -180,6 +203,7 @@ function clean_path()
 }
 
 ## Completion {{{1
+# munge {{{2
 function _munge()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
@@ -189,8 +213,49 @@ function _munge()
     esac
 }
 complete -F _munge munge
-complete -F _munge remove_path
-complete -F _munge change_or_munge
+
+# remove_path {{{2
+function _remove_path()
+{
+    export cas=0
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    case $COMP_CWORD in
+        1) COMPREPLY=( $(compgen -v ${cur}) ) ;;
+        *) 
+            declare -a used=( "${COMP_WORDS[@]:2}" )
+            unset used[${#used[@]}-1]
+            ;& # fallthrough
+        2)
+            local envname=${COMP_WORDS[1]}
+            local paths=( $(_split_path ${!envname}) )
+            COMPREPLY=( $(compgen -W "$(printf "%s\n" "${paths[@]}")" -- ${cur}) )
+            if [ -n "${used}" ] ; then
+                cas+=*
+                for p in "${used[@]}" ; do
+                    COMPREPLY=( $(_filter_array "${p}" "${COMPREPLY[@]}"))
+                done
+            fi
+            ;;
+    esac
+}
+complete -F _remove_path remove_path
+
+# change_or_munge {{{2
+function _change_or_munge()
+{
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    case $COMP_CWORD in
+        1) COMPREPLY=( $(compgen -v ${cur}) ) ;;
+        2) local envname=${COMP_WORDS[1]}
+           local paths=( $(_split_path ${!envname}) )
+           COMPREPLY=( $(compgen -W "$(printf "%s\n" "${paths[@]}")" -- ${cur}) ) ;;
+        *) COMPREPLY=( $(compgen -d ${cur}) ) ;;
+    esac
+}
+complete -F _change_or_munge change_or_munge
+
+# clean_path {{{2
+complete -v clean_path
 
 # }}}1
 # vim:ft=sh:fdm=marker

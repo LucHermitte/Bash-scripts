@@ -64,7 +64,7 @@ pass-phrase, once, and then it will remember it for later.
 
 This script is meant to be sourced from the `~/.bashrc` to help help filling
 paths into variables like `$PATH`. The main objective is to avoid duplicates in
-the end variables.
+the path variables.
 
 For instance, with
 ```bash
@@ -82,6 +82,7 @@ The script also defines
 * `remove_path VARIABLE paths-to-remove...`  to remove a list of paths
 * `clean_path VARIABLE` to remove duplicates
 
+All four commands come with autocompletion for bash.
 
 
 ### nm_and_grep.sh
