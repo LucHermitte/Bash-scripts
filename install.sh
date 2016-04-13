@@ -28,12 +28,13 @@ current_dir() {
 
 # Usage and options {{{2
 usage() {
-    echo "USAGE: $0 [-v|--verbose] [HOMEDIR]"
+    echo "USAGE: $0 [-v|--verbose] [-s|--symlink] [HOMEDIR]"
     echo "USAGE: $0 [-h|--help]"
 }
 
 
 verbose=0
+symlink=""
 HOMEDIR=""
 
 while [ $# -gt 0 ] ; do
@@ -46,6 +47,10 @@ while [ $# -gt 0 ] ; do
             verbose=1
             shift
             ;;
+		-s|--symlink)
+			symlink="-s"
+			shift
+			;;
         *)
             if [ x"$HOMEDIR0" != x"" ] ; then
                 echo "$0: Error HOMEDIR already overridden"
@@ -114,7 +119,7 @@ for f in $files ; do
 		done
 	fi
 
-    ln -s "$ORIG/$f"
+    ln $symlink "$ORIG/$f"
 done
 
 
