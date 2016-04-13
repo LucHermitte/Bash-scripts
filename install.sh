@@ -65,7 +65,16 @@ ORIG=$(current_dir)
 cd "$ORIG"
 
 files=$(ls *.bashrc *.sh)
+
+if [ ! -d "$HOMEDIR/bin" ]; then
+	mkdir "$HOMEDIR/bin"
+
+	if [ $verbose -gt 0 ] ; then
+		echo mkdir "$HOMEDIR/bin"
+	fi
+fi
 cd "$HOMEDIR/bin"
+
 if [ $verbose -gt 0 ] ; then
     echo cd "$HOMEDIR/bin"
 fi
@@ -85,8 +94,27 @@ for f in $files ; do
     if [ $verbose -gt 0 ] ; then
         echo ln "$ORIG/$f"
     fi
-    rm "$f"
-    ln "$ORIG/$f"
+
+	if [ -L "$f" ]; then
+		rm "$f"
+	elif [ -e "$f" ]; then
+		while true; do
+			read -p "$f exists and is not a symbolic link, delete anyway? [Y/N] " yn
+			case $yn in
+				[Yy]* )
+					rm -rf $f
+					break;
+					;;
+				[Nn]* )
+					echo "Skipping $f"
+					continue 2
+					;;
+				* ) echo "Please answer yes or no.";;
+			esac
+		done
+	fi
+
+    ln -s "$ORIG/$f"
 done
 
 
