@@ -1,0 +1,38 @@
+# To source this file:
+#   bind -f {thefilename}
+# To know the list of functions, bound or not
+#   bind -p | less
+
+# Deserve to be know
+# - "\C-x\C-u": undo
+# - "\e#": insert-comment
+# - "\C-s": forward-search-history
+# - "\C-r": reverse-search-history
+# - "\et": transpose-words
+
+# enable 8-bits characters ...
+set meta-flag on
+set convert-meta off
+set output-meta on
+
+# clear a line.
+Control-u: kill-whole-line
+Home: beginning-of-line
+
+# Moving around
+"\e[1;5C": forward-word
+"\e[1;5D": backward-word
+
+# Insert "$()" around current line
+"\e\C-m": '\C-a"$(\C-e)"'
+
+# CTRL+up/down: navigate search history
+"\e[1;5A": history-search-backward
+"\e[1;5B": history-search-forward
+
+# Append " | less"
+"\el": '\C-e | less'
+# Prepend "less"
+"\eL": '\C-aless '
+# Find
+"\eF": '\C-afind . -name '
