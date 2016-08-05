@@ -9,6 +9,7 @@
 # - "\C-s": forward-search-history
 # - "\C-r": reverse-search-history
 # - "\et": transpose-words
+# - restore a binding: self-insert
 
 # enable 8-bits characters ...
 set meta-flag on
@@ -16,8 +17,8 @@ set convert-meta off
 set output-meta on
 
 # clear a line.
-Control-u: kill-whole-line
-Home: beginning-of-line
+#Control-u: kill-whole-line
+#Home: beginning-of-line
 
 # Moving around
 "\e[1;5C": forward-word
@@ -30,6 +31,8 @@ Home: beginning-of-line
 "\e[1;5A": history-search-backward
 "\e[1;5B": history-search-forward
 
+# Insert " 2>&1"
+"\e2": '2>&1'
 # Append " | less"
 "\el": '\C-e | less'
 # Prepend "less"
