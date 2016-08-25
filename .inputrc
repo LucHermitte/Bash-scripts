@@ -11,6 +11,9 @@
 # - "\et": transpose-words
 # - restore a binding: self-insert
 
+# Don't beep
+set bell-style none
+
 # enable 8-bits characters ...
 set meta-flag on
 set convert-meta off
@@ -23,6 +26,16 @@ set output-meta on
 # Moving around
 "\e[1;5C": forward-word
 "\e[1;5D": backward-word
+
+# Ctrl+Backspace/Delete to delete whole words
+"\e[3;5~": kill-word
+"\C-_": backward-kill-word
+
+# Ctrl+Shift+Backspace/Delete to delete to start/end of the line
+"\e[3;6~": kill-line
+"\xC2\x9F": backward-kill-line  # for UTF-8
+#"\x9F": backward-kill-line     # for ISO-8859-x
+#"\e\C-_": backward-kill-line   # for any other charset
 
 # Insert "$()" around current line
 "\e\C-m": '\C-a"$(\C-e)"'
