@@ -1,7 +1,7 @@
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 # Purpose:      Aliases for mananing directories stack.
 # Licence:      GPL2
-# Version:      1.5
+# Version:      1.5.1
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
@@ -68,8 +68,8 @@ function _die()
 {
    local msg=$1
    [ -z "${msg}" ] && msg="Died"
-   # printf "${BASH_SOURCE[1]}:${BASH_LINENO[0]}: ${FUNCNAME[1]}: ${msg}" >&2
-   printf "${msg}" >&2
+   printf "%s" "${BASH_SOURCE[1]}:${BASH_LINENO[0]}: ${FUNCNAME[1]}: ${msg}" >&2
+   # printf "%s\n" "${msg}" >&2
    return 0
 }
 
@@ -89,27 +89,27 @@ function _save_file()
 
 if [ 0 == 1 ] ; then
     # Si gawk
-    d() { \dirs | gawk  '{gsub(/ ~/, "!~"); gsub(/ \//, "!/") ; n=split($0,arr,"!") ; for (i=1;i<=n;++i) print (i-1)" -> "arr[i] }'
+    d() { command dirs | gawk  '{gsub(/ ~/, "!~"); gsub(/ \//, "!/") ; n=split($0,arr,"!") ; for (i=1;i<=n;++i) print (i-1)" -> "arr[i] }'
     }
 else
     maybegrep() {
         if [ $# -gt 0 ] ; then
-            grep $1
+            grep "$1"
         else
             cat
         fi
 }
     # Si pas gawk
-    # d() { \dirs | sed 's# \([/.~]\)#\1#g' |grep -n . | sed 's#:#-> #'
-    # d() { \dirs | perl -pe "s# ([/.~])#\n\1#g" |grep -n . | sed 's#:# -> #'
+    # d() { command dirs | sed 's# \([/.~]\)#\1#g' |grep -n . | sed 's#:#-> #'
+    # d() { command dirs | perl -pe "s# ([/.~])#\n\1#g" |grep -n . | sed 's#:# -> #'
     #}
-    #d() { \dirs | perl -e '@t=<> ; @s = map ( { split(" ",$_) } @t) ; for ($n=0 ; $s[$n] ; ++$n) { print "$n --> " ; print "\033[00;34;34m" if ($n==0) ; print "$s[$n]\n" ; print "\033[01;00;0m" if ($n==0)}'
+    #d() { command dirs | perl -e '@t=<> ; @s = map ( { split(" ",$_) } @t) ; for ($n=0 ; $s[$n] ; ++$n) { print "$n --> " ; print "\033[00;34;34m" if ($n==0) ; print "$s[$n]\n" ; print "\033[01;00;0m" if ($n==0)}'
     #}
-    d() { \dirs | perl -e '@t=<> ; @s = map ( { split(" (?=[/~])",$_) } @t) ; for ($n=0 ; $s[$n] ; ++$n) { print "$n --> " ; print "\033[33m" if ($n==0) ; print "$s[$n]" ; print "\033[01;00;0m" if ($n==0) ; print "\n"}' | maybegrep "$@"
+    d() { command dirs | perl -e '@t=<> ; @s = map ( { split(" (?=[/~])",$_) } @t) ; for ($n=0 ; $s[$n] ; ++$n) { print "$n --> " ; print "\033[33m" if ($n==0) ; print "$s[$n]" ; print "\033[01;00;0m" if ($n==0) ; print "\n"}' | maybegrep "$@"
 }
 fi
 alias dirs=d
-# Note: We can not directly write «dirs() { \dirs | ... }» as it would
+# Note: We can not directly write «dirs() { command dirs | ... }» as it would
 # end in an infinite loop. Hence the declaration of «d(){}» and dirs as
 # an alias for d.
 
@@ -118,10 +118,10 @@ alias dirs=d
 p() {
     if [ -z "$*" ] ; then
         # If no parameter, we do not want to push the current directory
-        \pushd > /dev/null
+        command pushd > /dev/null
     else
         # The quotes in «"$*» permit to write «p $vim»
-        \pushd "$*" > /dev/null
+        command pushd "$*" > /dev/null
     fi
     # List the directories pushed
     d
@@ -142,7 +142,7 @@ alias   p9="p +9"
 # ----------------------------------------------------------------------
 ## Pop a directory {{{2
 # Same workaround than «d()» and «dirs»
-popd_int() { \popd $* > /dev/null ; d
+popd_int() { command popd "$*" > /dev/null ; d
 }
 alias popd=popd_int
 
@@ -169,20 +169,24 @@ g() {
         echo ""
         echo "See pushd (aliased to p), dirs (aliased to d), and popd"
     else
-        local all_dirs=$(dirs)
-        local matching_dirs=$(printf "$all_dirs"| grep_all "$@")
+        local all_dirs
+        local matching_dirs
+        all_dirs=$(dirs)
+        matching_dirs=$(printf "%s" "$all_dirs"| grep_all "$@")
         if [ $? -eq 1 ] ; then
-            echo "g: there is no pushed directories matching '$@'"
-            printf "$all_dirs"
+            echo "g: there is no pushed directories matching '$*'"
+            printf "%s" "$all_dirs"
         else
-            local nb=$(echo "$matching_dirs" | wc -l)
+            local nb
+            nb=$(echo "$matching_dirs" | wc -l)
             #echo $(echo "$matching_dirs" | wc )
             if [ $nb -gt 1 ] ; then
-                echo "g: there are too many pushed directories matching '$@'"
-                printf "$matching_dirs"
+                echo "g: there are too many pushed directories matching '$*'"
+                printf "%s" "$matching_dirs"
             else
-                local which=$(echo $matching_dirs |cut -f 1 -d " ")
-                p +$which
+                local which
+                which=$(echo "$matching_dirs" |cut -f 1 -d " ")
+                p +"$which"
             fi
         fi
     fi
@@ -207,9 +211,9 @@ save_conf() {
     _save_file "${conf_file}.hist"
 
     export HISTFILE="${conf_file}.hist"
-    echo "$(\dirs -p)" > "${conf_file}.dirs"
+    command dirs -p > "${conf_file}.dirs"
     echo "${bash_conf}" > "${conf_file}.env"
-    env | egrep -v "proxy" >> "${conf_file}.env"
+    env | grep -E -v "proxy" >> "${conf_file}.env"
     history -w
     echo "Bash configuration ${bash_conf} saved (in ${shell_conf_files})."
 }
@@ -228,7 +232,7 @@ which_terminal_emulator() {
         pid=$1
     done
     shift; shift
-    printf '%s\n' "$*"e
+    printf '%s\n' "$*"
 }
 
 ## Restore configuration {{{2
@@ -245,29 +249,33 @@ load_conf() {
         return 2
     fi
     # TODO: test with directories with spaces
-    \dirs -c
+    command dirs -c
     local n=0
-    for i in $(cat "${conf_file}.dirs") ; do
+    # for i in $(cat "${conf_file}.dirs")
+    while IFS= read -r i
+    do
         if [ $n -eq 0 ] ; then
-            \cd "${i/\~/$HOME}" > /dev/null
+            command cd "${i/\~/$HOME}" > /dev/null
             ((n++))
         else
-            \pushd "${i/\~/$HOME}" > /dev/null
+            command pushd "${i/\~/$HOME}" > /dev/null
         fi
-    done
+    done < "${conf_file}.dirs"
     dirs
 
     export HISTFILE="${conf_file}.hist"
     if [ -f "${conf_file}.env" ] ; then
-        local tmpfile=$(mktemp)
-        env | egrep -v "proxy" >> "${tmpfile}"
+        local tmpfile
+        tmpfile="$(mktemp)"
+        env | grep -E -v "proxy" >> "${tmpfile}"
         echo "Here follows environment differences between loaded configuration (+) and current configuration (-)"
-        diff -U 0 "${tmpfile}" "${conf_file}.env" | egrep -v "@@|^---|^\+\+\+|PID|SESSION|SSH|AUTH|DISPLAY|PWD"
+        diff -U 0 "${tmpfile}" "${conf_file}.env" | grep -E -v "@@|^---|^\+\+\+|PID|SESSION|SSH|AUTH|DISPLAY|PWD"
         rm "${tmpfile}"
     fi
 
-    local term=$(which_terminal_emulator)
-    [ "${term/guake/}" != "$term" ] && guake -r ${bash_conf}
+    local term
+    term="$(which_terminal_emulator)"
+    [ "${term/guake/}" != "$term" ] && guake -r "${bash_conf}"
     [ -f "${HISTFILE}" ] && history -r
     echo "..."
     echo "Bash configuration ${bash_conf} loaded (from ${shell_conf_files})."
@@ -279,7 +287,7 @@ function _load_conf()
 {
     local shell_conf_files=${SHELL_CONF:-${HOME}/.config/bash}
     local cur=${COMP_WORDS[COMP_CWORD]}
-    COMPREPLY=($(\ls ${shell_conf_files}/*.dirs | sed "s#\.dirs##g" | xargs -L1 basename | grep "^${cur}.*"))
+    COMPREPLY=($(command ls "${shell_conf_files}"/*.dirs | sed "s#\.dirs##g" | xargs -L1 basename | grep "^${cur}.*"))
 
     return 0
 }
