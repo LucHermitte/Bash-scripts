@@ -1,24 +1,36 @@
+# See also: https://github.com/wwalker/ssh-find-agent
+#
 ## SSH
 SSH_ENV="$HOME/.ssh/environment"
 
 ## Stop on logout
 # See http://jowisoftware.de/wp/2012/04/managing-ssh-agent-automatically-with-cygwinputty-support/
 if [[ "$OSTYPE" = cygwin ]] ; then
+__instances_tgt=1
 _count_instances () {
-    ps | grep -c [m]intty
+    ps | grep -wc [m]intty
 }
+else
+__instances_tgt=2
+function _count_instances() {
+    # ps aux | grep -wc [b]ash
+    # The fact this is called in a function adds one to number bash
+    # processes detected -> __instances_tgt=2
+    pgrep -u $USER bash | wc -l
+}
+fi
 
 _on_exit_stop_agent() {
     local nb_instances=$(_count_instances)
-    if [ ${nb_instances} -eq 1 ] ; then
+    if [ ${nb_instances} -eq ${__instances_tgt} ] ; then
         echo "Terminating ssh-agent"
+        ssh-add   -D >/dev/null 2>&1
         ssh-agent -k >/dev/null 2>&1
     else
-        echo "$((${nb_instances}-1)) instances of Cygwin still running. ssh-agent is kept."
+        echo "$((${nb_instances}-1)) terminals still running. ssh-agent is kept."
     fi
 }
 trap '_on_exit_stop_agent' EXIT
-fi
 
 # start the ssh-agent
 function start_agent {
