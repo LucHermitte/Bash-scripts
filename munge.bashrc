@@ -94,6 +94,8 @@ function munge()
         fi
         return 2
     fi
+    # Add an alias over variable name to simplify its display
+    alias $var="echo \$$var | tr ':' '\n'"
     return 0
 }
 
@@ -221,7 +223,7 @@ function _remove_path()
     local cur=${COMP_WORDS[COMP_CWORD]}
     case $COMP_CWORD in
         1) COMPREPLY=( $(compgen -v ${cur}) ) ;;
-        *) 
+        *)
             declare -a used=( "${COMP_WORDS[@]:2}" )
             unset used[${#used[@]}-1]
             ;& # fallthrough

@@ -84,6 +84,16 @@ The script also defines
 
 All four commands come with autocompletion for bash.
 
+Also, after a
+
+```bash
+munge FOOPATH /some/path
+munge FOOPATH /other/path
+```
+
+A `FOOPATH` alias will be automatically defined, it'll print `$FOOPATH` value,
+with each path on a new line. This means that if you use `munge` on `PATH`,
+`LD_LIBRARY_PATH`, or `MANPATH`, etc, eponym aliases will be defined!
 
 ### nm_and_grep.sh
 
