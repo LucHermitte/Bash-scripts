@@ -1,7 +1,7 @@
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 # Purpose:      Aliases for mananing directories stack.
 # Licence:      GPL2
-# Version:      1.5.1
+# Version:      1.6.0
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
@@ -280,6 +280,14 @@ load_conf() {
     echo "..."
     echo "Bash configuration ${bash_conf} loaded (from ${shell_conf_files})."
 }
+
+## auto-save {{{3
+function _on_exit_save_conf()
+{
+    _is_unset bash_conf || save_conf
+}
+trap '_on_exit_save_conf' EXIT
+
 
 ## Completion {{{2
 # _load_conf {{{3
