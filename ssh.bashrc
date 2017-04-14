@@ -58,9 +58,18 @@ function test_identities {
     fi
 }
 
+if [ ${SSH_AGENT_IS_HIDDEN:-0} -eq 1 ] ; then
+    # Sometimes, I'm on a machine that hides ssh-agent process.
+    # Let's instead suppose that if ssh-add -l returns a valid number
+    # which means there is an agent running around
+function _ssh_test_agent {
+    ssh-add -l > /dev/null 2>&1
+}
+else
 function _ssh_test_agent {
     ps -ef | grep $SSH_AGENT_PID | grep ssh-agent > /dev/null
 }
+fi
 
 function _ssh_run_env {
     # if $SSH_AGENT_PID is not properly set, we might be able to load one from
