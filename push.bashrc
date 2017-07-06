@@ -142,7 +142,10 @@ alias   p9="p +9"
 # ----------------------------------------------------------------------
 ## Pop a directory {{{2
 # Same workaround than «d()» and «dirs»
-popd_int() { command popd "$*" > /dev/null ; d
+function popd_int()
+{
+    command popd "$@" > /dev/null
+    d
 }
 alias popd=popd_int
 
@@ -260,7 +263,9 @@ load_conf() {
         else
             command pushd "${i/\~/$HOME}" > /dev/null
         fi
-    done < "${conf_file}.dirs"
+    done < <(tac "${conf_file}.dirs")
+    # TODO: check tac is present
+    # tac == cat, but reverse lines
     dirs
 
     export HISTFILE="${conf_file}.hist"
