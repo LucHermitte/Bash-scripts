@@ -42,7 +42,7 @@ function start_agent {
     echo succeeded
     chmod 600 "$SSH_ENV"
     . "$SSH_ENV" > /dev/null
-    ssh-add ${SSH_KEYS}
+    ssh-add "${SSH_KEYS}"
 }
 
 # test for identities
@@ -50,7 +50,7 @@ function test_identities {
     # test whether standard identities have been added to the agent already
     ssh-add -l | grep "The agent has no identities" > /dev/null
     if [ $? -eq 0 ]; then
-        ssh-add ${SSH_KEYS}
+        ssh-add "${SSH_KEYS}"
         # $SSH_AUTH_SOCK broken so we start a new proper agent
         if [ $? -eq 2 ];then
             start_agent
