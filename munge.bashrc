@@ -210,8 +210,21 @@ function _munge()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
     case $COMP_CWORD in
-        1) COMPREPLY=( $(compgen -v ${cur}) ) ;;
-        *) COMPREPLY=( $(compgen -d ${cur}) ) ;;
+        1) COMPREPLY=( $(compgen -v ${cur}) )
+            # Add a space in variable names case
+            ;;
+        *) COMPREPLY=( $(compgen -d ${cur}) )
+            # Add a trailling '/' to the result found
+            if [[ ${#COMPREPLY[@]} -eq 1 ]]; then
+                i=${COMPREPLY[0]}
+                if [[ "$i" == "$cur" && $i != "*/" ]]; then
+                    COMPREPLY[0]="${i}/"
+                fi
+            fi
+
+            # Don't add a space in directories case
+            compopt -o nospace
+            ;;
     esac
 }
 complete -F _munge munge
