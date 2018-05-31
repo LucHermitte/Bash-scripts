@@ -52,3 +52,5 @@ set output-meta on
 "\eL": '\C-aless '
 # Find
 "\eF": '\C-afind . -name '
+# append "| awk /pattern/ {print $42}"
+"\ea": '\C-e | awk \'/pattern/ {print $42}\''
