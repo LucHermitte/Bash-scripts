@@ -37,11 +37,11 @@ trap '_on_exit_stop_agent' EXIT
 function start_agent {
     echo "Initializing new SSH agent..."
     # spawn ssh-agent
-    rm "$SSH_ENV"
-    ssh-agent | sed 's/^echo/#echo/' > "$SSH_ENV"
+    test -f "${SSH_ENV}" && rm "${SSH_ENV}"
+    ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
     echo succeeded
-    chmod 600 "$SSH_ENV"
-    . "$SSH_ENV" > /dev/null
+    chmod 600 "${SSH_ENV}"
+    . "${SSH_ENV}" > /dev/null
     ssh-add "${SSH_KEYS}"
 }
 
@@ -74,7 +74,7 @@ fi
 function _ssh_run_env {
     # if $SSH_AGENT_PID is not properly set, we might be able to load one from
     # $SSH_ENV
-    . "$SSH_ENV" > /dev/null
+    . "${SSH_ENV}" > /dev/null
     _ssh_test_agent && test_identities || start_agent
 }
 
@@ -93,7 +93,7 @@ if [ $? -eq 0 ]; then
 # if $SSH_AGENT_PID is not properly set, we might be able to load one from
 # $SSH_ENV
 else
-    . "$SSH_ENV" > /dev/null
+    . "${SSH_ENV}" > /dev/null
     ps -ef | grep $SSH_AGENT_PID | grep ssh-agent > /dev/null
     if [ $? -eq 0 ]; then
         test_identities
