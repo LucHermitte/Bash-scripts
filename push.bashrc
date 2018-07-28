@@ -1,7 +1,7 @@
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 # Purpose:      Aliases for mananing directories stack.
 # Licence:      GPL2
-# Version:      1.6.0
+# Version:      1.6.1
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
