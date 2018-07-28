@@ -223,18 +223,28 @@ save_conf() {
 
 ## Which terminal emulator {{{2
 # http://unix.stackexchange.com/questions/170428/identify-whether-terminal-is-open-in-guake
+# Note however that on Cygwin, ps doesn't support -o
 which_terminal_emulator() {
     set -f
     pid=$PPID
-    my_tty=$(ps -p $$ -o tty=)
-    while
-        [ "$pid" -ne 1 ] &&
-            set -- $(ps -p "$pid" -o ppid= -o tty= -o args=) &&
-            [ "$2" = "$my_tty" ]
-    do
-        pid=$1
-    done
-    shift; shift
+    case $(uname -o) in
+        Cygwin)
+            my_tty=$(cat /proc/$$/ctty)
+            while [ "$pid" -ne 1 ] && set -- $(cat /proc/$pid/ppid /proc/$pid/exename) && [ "$(cat /proc/$pid/ctty)" = "$my_tty" ]
+            do
+                pid=$1
+            done
+            shift
+            ;;
+        *)
+            my_tty=$(ps -p $$ -o tty=)
+            while [ "$pid" -ne 1 ] && set -- $(ps -p "$pid" -o ppid= -o tty= -o args=) && [ "$2" = "$my_tty" ]
+            do
+                pid=$1
+            done
+            shift; shift
+            ;;
+    esac
     printf '%s\n' "$*"
 }
 
