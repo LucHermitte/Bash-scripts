@@ -315,7 +315,7 @@ while [ $# -gt 0 ] ; do
         --slashed-opt       ) slashed_opt=1;;
         --cyg-verbose=[0-9] ) cyg_verb=${1#*=};;
         --cyg-verbose       ) cyg_verb=1;;
-        --binary-opt=*      ) binary_args=${1#*=};;
+        --binary-opt=*      ) binary_args=$(echo ${1#*=} | sed -e 's/^,*\|,*$/,/g');;
         --path-opt=*        ) path_options=${1#*=};;
         --keywords=*        ) keywords=${1#*=};;
         --fork=[012]        ) fork_option=${1#*=};;
@@ -363,7 +363,7 @@ fi
 # Loop that transforms PROGRAM's arguments {{{2
 # For each argument ...
 while [ $# -gt 0 ] ; do
-    if [ "${binary_args/$1/}" != "$binary_args" ] ; then
+    if [ "${binary_args/,$1,/}" != "$binary_args" ] ; then
         # Binary arguments: the next argument is to be ignored (not a file).
         # echo "<$1> found into <$binary_args>"
         param[${#param[*]}]="$1"
