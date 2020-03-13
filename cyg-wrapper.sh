@@ -14,8 +14,8 @@
 #                                   for new behaviour of realpath
 #               James Kanze      -> Patch for --fork=2
 #
-# LAST UPDATE:  05th Mar 2016
-version="2.21"
+# LAST UPDATE:  13th Mar 2020
+version="2.22"
 #
 # NOTES:   {{{1
 #   IMPORTANT: this shell script is for cygwin *ONLY*!
@@ -52,7 +52,7 @@ usageversion() {
     else
         cat <<END
 # $prog $version
-Copyright (c) 2001-2016 Luc Hermitte
+Copyright (c) 2001-2020 Luc Hermitte
   This is free software; see the GNU General Public Licence version 2 or later
   for copying conditions.  There is NO warranty.
 
@@ -193,6 +193,9 @@ fi
 # v.2.20
 # (*) Convert PROGRAM into Windows form
 #
+# v2.22
+# (*) Correctly decode binary options (See #6 reported by Tavish Robinson)
+#
 # }}}1
 # TODO:    {{{1
 # (*) Convert parameters like: 'X{path}'
@@ -302,7 +305,7 @@ shift;
 # --cyg-convert-env={vars} : lists of environment variables whose pathnames must
 #                            be converted
 slashed_opt=0
-binary_args=""
+declare -A binary_args=()
 keywords=""
 path_options=""
 cyg_verb=0
@@ -315,7 +318,9 @@ while [ $# -gt 0 ] ; do
         --slashed-opt       ) slashed_opt=1;;
         --cyg-verbose=[0-9] ) cyg_verb=${1#*=};;
         --cyg-verbose       ) cyg_verb=1;;
-        --binary-opt=*      ) binary_args=${1#*=};;
+        --binary-opt=*      ) IFS=, bargs=(${1#*=})
+            declare -Ar binary_args="($(printf "[%s]=1 " "${bargs[@]}"))"
+            ;;
         --path-opt=*        ) path_options=${1#*=};;
         --keywords=*        ) keywords=${1#*=};;
         --fork=[012]        ) fork_option=${1#*=};;
@@ -349,7 +354,7 @@ done
 
 if [ $cyg_verb -gt 1 ] ; then
     echo "cyg_verb      =$cyg_verb"
-    echo "binary_args   =$binary_args"
+    echo "binary_args   =${bargs[@]}"
     echo "path_options  =$path_options"
     echo "keywords      =$keywords"
     echo "slashed_opt   =$slashed_opt"
@@ -363,15 +368,16 @@ fi
 # Loop that transforms PROGRAM's arguments {{{2
 # For each argument ...
 while [ $# -gt 0 ] ; do
-    if [ "${binary_args/$1/}" != "$binary_args" ] ; then
+    if [ -v binary_args[$1] ] ; then
         # Binary arguments: the next argument is to be ignored (not a file).
-        # echo "<$1> found into <$binary_args>"
+        [ $cyg_verb -gt 2 ] && printf "bin arg: '%s' '%s'\n" "$1" "$2"
         param[${#param[*]}]="$1"
         shift
         param[${#param[*]}]="$1"
     elif [ "${keywords/$1/}" != "$keywords" ] ; then
         # Actions: the argument is to be ignored (not a file).
         # Todo: check to position of the keywords
+        [ $cyg_verb -gt 2 ] && printf "keyword: '%s'\n" "$1"
         param[${#param[*]}]="$1"
     elif [ "${path_options/${1%=*}/}" != "$path_options" ] ; then
         # Special option of the form: "{option}={path}"
@@ -382,6 +388,7 @@ while [ $# -gt 0 ] ; do
         p=`transform_path "${1#*=}"`
         # Push the complete option with the "win32"/URL path ito the list of
         # parameter.
+        [ $cyg_verb -gt 2 ] && printf "path opt: '$%s' <- '%s'\n" "${1%=*}" "$p"
         param[${#param[*]}]="${1%=*}=$p"
     else
         # Plain path or options.
@@ -389,8 +396,10 @@ while [ $# -gt 0 ] ; do
         case "$1" in
             [-+]* ) # Option
                 if [ $slashed_opt = 1 ] ; then
+                    [ $cyg_verb -gt 2 ] && printf "opt: '%s'\n" "${1/-//}"
                     param[${#param[*]}]="${1/-//}"
                 else
+                    [ $cyg_verb -gt 2 ] && printf "opt: '%s'\n" "$1"
                     param[${#param[*]}]="$1"
                 fi
             ;;
@@ -399,6 +408,7 @@ while [ $# -gt 0 ] ; do
                 # NB: must be done in two steps in order to not break arguments
                 # having spaces.
                 p=`transform_path "$1"`
+                [ $cyg_verb -gt 2 ] && printf "path: '%s' <- '%s'\n" "$p" "$1"
                 param[${#param[*]}]="$p"
             ;;
         esac
@@ -415,7 +425,7 @@ done
 if [ $cyg_verb -gt 0 ] ; then
     # echo "$param"  | sed s'#\\\\#\\#g'
     # echo ${param//\\\\\\\\/\\}
-    echo "${param[@]}"
+    printf " '%s'" "${param[@]}"
 fi
 # call PROGRAM
 # exit
