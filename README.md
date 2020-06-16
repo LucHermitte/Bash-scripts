@@ -81,6 +81,7 @@ The script also defines
 * `change_or_munge VARIABLE old-path new-path`  to replace a path
 * `remove_path VARIABLE paths-to-remove...`  to remove a list of paths
 * `clean_path VARIABLE` to remove duplicates
+* `munge_std_variables new-path` to define in one go `$PATH`, `$LD_LIBRARY_PATH`, `$MANPATH`, `$INFOPATH`, `$PKG_CONFIG_PATH` depending in what is found in the new directory
 
 All four commands come with autocompletion for bash.
 

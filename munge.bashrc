@@ -204,6 +204,34 @@ function clean_path()
     return 0
 }
 
+# munge_std_variables {{{2
+# Given the path received, tries to fill PATH, MANPATH, LD_LIBRARY_PATH,
+# PKG_CONFIG_PATH...
+function munge_std_variables()
+{
+    if [ $# -lt 1 ] ; then
+        echo "munge_std_variables <new-path> [after]"
+        return 1
+    fi
+    local path=$1
+
+    if [ ! -d "${path}" ] ; then
+        if [[ "${verbose_munge+set}" = "set" ]] ; then
+            echo "inexistent path not added to std variables (${PATH})"
+        fi
+        return 1
+    fi
+    munge PATH            "${path}/bin"           $2
+    munge LD_LIBRARY_PATH "${path}/lib"           $2
+    munge LD_LIBRARY_PATH "${path}/lib64"         $2
+    munge MANPATH         "${path}/man"           $2
+    munge MANPATH         "${path}/share/man"     $2
+    munge INFOPATH        "${path}/info"          $2
+    munge INFOPATH        "${path}/share/info"    $2
+    munge PKG_CONFIG_PATH "${path}/lib/pkgconfig" $2
+    return 0
+}
+
 ## Completion {{{1
 # munge {{{2
 function _munge()
@@ -271,6 +299,9 @@ complete -F _change_or_munge change_or_munge
 
 # clean_path {{{2
 complete -v clean_path
+
+# munge_std_variables {{{2
+complete -d munge_std_variables
 
 # }}}1
 # vim:ft=sh:fdm=marker
