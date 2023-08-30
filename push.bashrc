@@ -1,7 +1,7 @@
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 # Purpose:      Aliases for mananing directories stack.
 # Licence:      GPL2
-# Version:      1.6.1
+# Version:      1.6.2
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
@@ -179,6 +179,7 @@ g() {
         if [ $? -eq 1 ] ; then
             echo "g: there is no pushed directories matching '$*'"
             printf "%s" "$all_dirs"
+            printf "\n\n"
         else
             local nb
             nb=$(echo "$matching_dirs" | wc -l)
@@ -186,6 +187,7 @@ g() {
             if [ $nb -gt 1 ] ; then
                 echo "g: there are too many pushed directories matching '$*'"
                 printf "%s" "$matching_dirs"
+                printf "\n\n"
             else
                 local which
                 which=$(echo "$matching_dirs" |cut -f 1 -d " ")
