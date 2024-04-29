@@ -1,7 +1,7 @@
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 # Purpose:      Aliases for mananing directories stack.
 # Licence:      GPL2
-# Version:      1.6.2
+# Version:      1.6.3
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
@@ -281,6 +281,9 @@ load_conf() {
     dirs
 
     export HISTFILE="${conf_file}.hist"
+    # in that context, it makes sense to always save history...
+    export PROMPT_COMMAND="history -a"
+
     if [ -f "${conf_file}.env" ] ; then
         local tmpfile
         tmpfile="$(mktemp)"
