@@ -1,7 +1,7 @@
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 # Purpose:      Aliases for mananing directories stack.
 # Licence:      GPL2
-# Version:      1.6.3
+# Version:      1.7.0
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
@@ -291,6 +291,12 @@ load_conf() {
         echo "Here follows environment differences between loaded configuration (+) and current configuration (-)"
         diff -U 0 "${tmpfile}" "${conf_file}.env" | grep -E -v "@@|^---|^\+\+\+|PID|SESSION|SSH|AUTH|DISPLAY|PWD"
         rm "${tmpfile}"
+        local modules=($(awk 'BEGIN{FS="="} /^LOADEDMODULES=/ {gsub(/:/, " ", $2); print $2}' "${conf_file}.env"))
+        if [ ${#modules[@]} -gt 0 ] ; then
+            printf "\n\nThe following modules where loaded:\n"
+            printf " - %s\n" "${modules[@]}" 
+            echo
+        fi
     fi
 
     local term
