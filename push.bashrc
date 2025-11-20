@@ -1,12 +1,12 @@
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
-# Purpose:      Aliases for mananing directories stack.
+# Purpose:      Aliases for managing directories stack.
 # Licence:      GPL2
-# Version:      1.7.0
+# Version:      1.8.0
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
 #       Requires a shell that implements directories stack like bash,
-#       and the following programs: perl, cut, grep, and cat.
+#       and the following programs: gawk or perl, cut, grep, and cat.
 # ----------------------------------------------------------------------
 # Usage:
 #   This script provides a few helpers on top of pushd/popd/dirs
@@ -24,6 +24,9 @@
 #
 #   - p/pushd and popd will display dirs result after each directories
 #     stack modification.
+#
+#     Current directory will be displayed in yellow, and previous one in
+#     cyan.
 #
 #   - p1 to p9 are aliases on "pushd +1" to "pushd +9"
 #
@@ -50,20 +53,20 @@
 #
 # ----------------------------------------------------------------------
 ### Helper functions {{{1
-# _is_unset {{{2
+# _is_unset       {{{2
 function _is_unset()
 {
     [[ -z ${!1+x} ]]
 }
 
-# _is_set {{{2
+# _is_set         {{{2
 function _is_set()
 {
     # [[ -v $1 ]] with bash 4.2+
     [[ -n ${!1+x} ]]
 }
 
-# _die {{{2
+# _die            {{{2
 function _die()
 {
    local msg=$1
@@ -73,7 +76,13 @@ function _die()
    return 0
 }
 
-# _save_file {{{2
+# _has_executable {{{2
+function _has_executable()
+{
+    command -v "$1" > /dev/null
+}
+
+# _save_file      {{{2
 function _save_file()
 {
     local file=$1
@@ -87,26 +96,63 @@ function _save_file()
 ### Directory pushing {{{1
 ## Display the directories pushed {{{2
 
-if [ 0 == 1 ] ; then
-    # Si gawk
-    d() { command dirs | gawk  '{gsub(/ ~/, "!~"); gsub(/ \//, "!/") ; n=split($0,arr,"!") ; for (i=1;i<=n;++i) print (i-1)" -> "arr[i] }'
+if _has_executable gawk ; then
+    function d()
+    {
+        while [ $# -gt 0 ] ; do
+            case "$1" in
+                --highlight=*) _hl=${1#*=};;
+                *            ) _grep="$1";;
+            esac
+            shift
+        done
+
+        local _cmd='{
+            gsub(/ ~/, "!~");
+            gsub(/ \//, "!/");
+            n     = split($0,arr,"!");
+            hl    = hl_crt;
+            reset = hl_reset;
+            for (i=1;i<=n;++i) {
+                if (grep == "" || arr[i+1] ~ grep) {
+                    if (arr[i] == highlight) {
+                        hl    = hl_prev;
+                        reset = hl_reset;
+                    }
+                    print ((i-1)" --> " hl arr[i] reset);
+                    if (arr[i] == highlight) { hl = ""; reset = "";}
+                }
+                if (i == 1) { hl = ""; reset = "";}
+            }
+            }'
+        command dirs \
+            | gawk \
+            -v grep="${_grep}" -v highlight="${_hl}" \
+            -v hl_reset="$(tput sgr0)" -v hl_crt="$(tput setaf 3)" -v hl_prev="$(tput setaf 6)" \
+            "${_cmd}"
     }
 else
-    maybegrep() {
-        if [ $# -gt 0 ] ; then
-            grep "$1"
-        else
-            cat
-        fi
-}
     # Si pas gawk
     # d() { command dirs | sed 's# \([/.~]\)#\1#g' |grep -n . | sed 's#:#-> #'
     # d() { command dirs | perl -pe "s# ([/.~])#\n\1#g" |grep -n . | sed 's#:# -> #'
     #}
     #d() { command dirs | perl -e '@t=<> ; @s = map ( { split(" ",$_) } @t) ; for ($n=0 ; $s[$n] ; ++$n) { print "$n --> " ; print "\033[00;34;34m" if ($n==0) ; print "$s[$n]\n" ; print "\033[01;00;0m" if ($n==0)}'
     #}
-    d() { command dirs | perl -e '@t=<> ; @s = map ( { split(" (?=[/~])",$_) } @t) ; for ($n=0 ; $s[$n] ; ++$n) { print "$n --> " ; print "\033[33m" if ($n==0) ; print "$s[$n]" ; print "\033[01;00;0m" if ($n==0) ; print "\n"}' | maybegrep "$@"
-}
+    function maybegrep()
+    {
+        if [ $# -gt 0 ] ; then
+            grep "$1"
+        else
+            cat
+        fi
+    }
+
+    function d()
+    {
+        command dirs \
+            | perl -e '@t=<> ; @s = map ( { split(" (?=[/~])",$_) } @t) ; for ($n=0 ; $s[$n] ; ++$n) { print "$n --> " ; print "\033[33m" if ($n==0) ; print "$s[$n]" ; print "\033[01;00;0m" if ($n==0) ; print "\n"}' \
+            | maybegrep "$@"
+    }
 fi
 alias dirs=d
 # Note: We can not directly write «dirs() { command dirs | ... }» as it would
@@ -115,7 +161,10 @@ alias dirs=d
 
 # ----------------------------------------------------------------------
 ## Push a directory {{{2
-p() {
+function p()
+{
+    local _all=( $(command dirs) )
+    local _crt="${_all[0]}"
     if [ -z "$*" ] ; then
         # If no parameter, we do not want to push the current directory
         command pushd > /dev/null
@@ -124,7 +173,7 @@ p() {
         command pushd "$*" > /dev/null
     fi
     # List the directories pushed
-    d
+    d --highlight="${_crt}"
 }
 
 # ----------------------------------------------------------------------
@@ -294,7 +343,7 @@ load_conf() {
         local modules=($(awk 'BEGIN{FS="="} /^LOADEDMODULES=/ {gsub(/:/, " ", $2); print $2}' "${conf_file}.env"))
         if [ ${#modules[@]} -gt 0 ] ; then
             printf "\n\nThe following modules where loaded:\n"
-            printf " - %s\n" "${modules[@]}" 
+            printf " - %s\n" "${modules[@]}"
             echo
         fi
     fi
