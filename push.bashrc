@@ -1,7 +1,7 @@
 # Author:       Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 # Purpose:      Aliases for managing directories stack.
 # Licence:      GPL2
-# Version:      1.8.0
+# Version:      1.8.1
 #
 # Installation:
 #       Source this file from your .bahrc/.profile
@@ -99,6 +99,8 @@ function _save_file()
 if _has_executable gawk ; then
     function d()
     {
+        local _grep
+        local _hl
         while [ $# -gt 0 ] ; do
             case "$1" in
                 --highlight=*) _hl=${1#*=};;
@@ -114,7 +116,7 @@ if _has_executable gawk ; then
             hl    = hl_crt;
             reset = hl_reset;
             for (i=1;i<=n;++i) {
-                if (grep == "" || arr[i+1] ~ grep) {
+                if (grep == "" || arr[i] ~ grep) {
                     if (arr[i] == highlight) {
                         hl    = hl_prev;
                         reset = hl_reset;
@@ -201,7 +203,7 @@ alias popd=popd_int
 # ----------------------------------------------------------------------
 ## grep all: do multiple grep to match all args {{{2
 grep_all() {
-    res="grep $1"
+    local res="grep $1"
     declare -a args=("$@")
     for arg in "${args[@]:1}" ; do
         res="${res} | grep ${arg}"
@@ -224,7 +226,7 @@ g() {
         local all_dirs
         local matching_dirs
         all_dirs=$(dirs)
-        matching_dirs=$(printf "%s" "$all_dirs"| grep_all "$@")
+        local matching_dirs=$(printf "%s" "$all_dirs"| grep_all "$@")
         if [ $? -eq 1 ] ; then
             echo "g: there is no pushed directories matching '$*'"
             printf "%s" "$all_dirs"
